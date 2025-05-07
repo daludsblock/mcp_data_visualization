@@ -1,0 +1,18 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: MCP Server",
+            "type": "debugpy",
+            "request": "launch",
+            // OPTION B: invoke the script file directly
+            "program": "/Users/dalu/Development/mcp_data_visualization/.venv/bin/mcp",
+            "args": [
+            "dev",
+            "src/mcp_data_visualization/server.py"  // Replace with the relative path to your Streamlit app
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": false,
+        }
+    ]
+}

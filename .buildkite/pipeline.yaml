@@ -1,0 +1,13 @@
+steps:
+  - label: "Build Wheel :python:"
+    commands:
+      - cd mcp_data_visualization
+      - uv build
+
+  - wait
+  
+  - label: "Publish Artifacts to Artifactory :artifactory:"
+    env:
+      RELEASE_BRANCH: "main"
+    commands:
+      - .buildkite/scripts/publish_pypi.sh mcp_data_visualization
