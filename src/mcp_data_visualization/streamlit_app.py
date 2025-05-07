@@ -7,8 +7,8 @@ from datetime import datetime
 from mcp_data_visualization.geo_plotting import create_geo_viz
 from streamlit_autorefresh import st_autorefresh
 from mcp_data_visualization.plotly_plotting import create_plotly_plot
-import os
-
+from mcp_data_visualization.geo_plotting import download_and_extract_zip, ZIP_CODE_SHAPE_DIR, ZIP_CODE_RESOURCE_URL
+from mcp_data_visualization.server import VIZ_CONFIGS_FILE
 
 # Set page config
 st.set_page_config(
@@ -17,18 +17,27 @@ st.set_page_config(
     layout="wide",    
 )
 
+# # Constants
+# VIZ_CONFIG_DIR=Path(tempfile.gettempdir()) / "mcp_data_visualization/viz_config"
+# VIZ_CONFIG_DIR.mkdir(exist_ok=True)
+
+# VIZ_CONFIGS_FILE = VIZ_CONFIG_DIR / "plot_configs.json"
+# if not VIZ_CONFIGS_FILE.exists():
+#     # Create a default configuration file
+#     VIZ_CONFIGS_FILE.write_text(json.dumps([], indent=4))
+
+# Check if the ZIP_CODE_SHAPE_DIR exists
+if not ZIP_CODE_SHAPE_DIR.exists():
+    print(f"{ZIP_CODE_SHAPE_DIR} does not exist. Downloading and extracting resources...")
+    ZIP_CODE_SHAPE_DIR.mkdir(parents=True, exist_ok=True)
+    download_and_extract_zip(ZIP_CODE_RESOURCE_URL, ZIP_CODE_SHAPE_DIR)
+
+
 #
 # 1) tell Streamlit to rerun this script every 5 000 ms
 #
 st_autorefresh(interval=5000, key="file_watcher")
 
-# Constants
-DATA_DIR = Path(__file__).parent / "data"
-VIZ_CONFIGS_FILE = DATA_DIR / "plot_configs.json"
-
-
-# Create data directory if it doesn't exist
-DATA_DIR.mkdir(exist_ok=True)
 
 # Initialize session state
 if "messages" not in st.session_state:

@@ -1,10 +1,39 @@
 import streamlit as st
-import plotly.graph_objects as go
 import geopandas as gpd
 import folium
 from pathlib import Path
-import os
-RESOURCE_DIR = Path(__file__).parent /"resources"
+import tempfile
+import requests
+import zipfile
+
+ZIP_CODE_SHAPE_DIR = Path(tempfile.gettempdir()) / 'resources/geo/tl_2024_us_zcta520'
+ZIP_CODE_SHAPEFILE = ZIP_CODE_SHAPE_DIR / 'tl_2024_us_zcta520.shp'
+ZIP_CODE_RESOURCE_URL = "https://www2.census.gov/geo/tiger/TIGER2024/ZCTA520/tl_2024_us_zcta520.zip"
+
+def download_and_extract_zip(url, extract_to):
+    """Download and extract a ZIP file."""
+    zip_file_path = extract_to / "temp.zip"
+
+    # Download the ZIP file in chunks
+    response = requests.get(url, stream=True, verify=False)
+    if response.status_code == 200:
+        with open(zip_file_path, "wb") as f:
+            for chunk in response.iter_content(chunk_size=1024*1024):
+                if chunk:  # Filter out keep-alive chunks
+                    f.write(chunk)
+        print("Download complete.")
+
+        # Extract the ZIP file
+        with zipfile.ZipFile(zip_file_path, "r") as zip_ref:
+            zip_ref.extractall(extract_to)
+        print("Extraction complete.")
+
+        # Remove the temporary ZIP file
+        zip_file_path.unlink()
+    else:
+        raise ValueError(f"Failed to download resource from {url}")
+    
+
 def create_folium_GeoJson_for_points(df, lat_col, lon_col, popup_fields=None):
     """Create GeoJSON for points from DataFrame.
     
@@ -44,8 +73,9 @@ def create_folium_GeoJson_for_polygons(df, location_col, value_col=None, popup_f
         folium GeoJson object for polygons
         colormap
     """
+        
     # Read shapefile and merge with data
-    zip_shapes = gpd.read_file(RESOURCE_DIR/'tl_2024_us_zcta520/tl_2024_us_zcta520.shp')
+    zip_shapes = gpd.read_file(ZIP_CODE_SHAPEFILE)
     zip_shapes = zip_shapes.rename(columns={'ZCTA5CE20': location_col})
     zip_shapes = zip_shapes.astype({location_col: str})
     df = df.astype({location_col: str})

@@ -7,6 +7,8 @@ import time
 from typing import Dict, Any, Optional, List
 from pathlib import Path
 import json
+import tempfile
+
 
 # Update the instructions for your MCP server
 instructions = """
@@ -16,8 +18,9 @@ This is the instruction / prompt for your MCP server. Include instructions on wh
 # Create an MCP server
 mcp = FastMCP("mcp_data_visualization", instructions=instructions)
 
-DATA_DIR = Path(__file__).parent / "data"
-VIZ_CONFIGS_FILE = DATA_DIR / "plot_configs.json"
+VIZ_CONFIG_DIR=Path(tempfile.gettempdir()) / "mcp_data_visualization/viz_config"
+VIZ_CONFIGS_FILE = Path(tempfile.gettempdir()) / "mcp_data_visualization/viz_config/plot_configs.json"
+
 
 def start_streamlit():
     """
@@ -41,6 +44,14 @@ def open_plot_ui()->Dict[str, Any]:
     """
     Launches the Streamlit app for data visualization.
     """
+
+    # Create the directory if it doesn't exist
+    if not VIZ_CONFIG_DIR.exists():
+        VIZ_CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+    if not VIZ_CONFIGS_FILE.exists():
+    # Create a default configuration file
+        VIZ_CONFIGS_FILE.write_text(json.dumps([], indent=4))
+    
     t = threading.Thread(target=start_streamlit, daemon=True)
     t.start()
     time.sleep(2)
@@ -136,6 +147,13 @@ def create_chart_plot(
     # Add any additional keyword arguments to the dictionary
     plot_args.update(kwargs)
     
+    # Create the directory if it doesn't exist
+    if not VIZ_CONFIG_DIR.exists():
+        VIZ_CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+    if not VIZ_CONFIGS_FILE.exists():
+        # Create a default configuration file
+        VIZ_CONFIGS_FILE.write_text(json.dumps([], indent=4))
+
     with open(VIZ_CONFIGS_FILE, 'w') as f:
         json.dump([{
             "name": "test_plot",
@@ -226,6 +244,13 @@ def create_geo_viz(
                 "message": "For plotting point data, the latitude and longitude columns are missing."
             }
             
+        # Create the directory if it doesn't exist
+        if not VIZ_CONFIG_DIR.exists():
+            VIZ_CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+        if not VIZ_CONFIGS_FILE.exists():
+            # Create a default configuration file
+            VIZ_CONFIGS_FILE.write_text(json.dumps([], indent=4))
+
 
         with open(VIZ_CONFIGS_FILE, 'w') as f:
             json.dump([geo_config], f, indent=4)
