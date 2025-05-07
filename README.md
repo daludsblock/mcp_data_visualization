@@ -22,7 +22,19 @@ mcp dev src/mcp_data_visualization/server.py
 
 Open your browser to http://localhost:5173 to see the MCP Inspector UI.
 
+## Install the package to the virtual environment
+1. Install your project locally:
 
+   ```bash
+   uv pip install .
+   ```
+
+2. Check the executable in your virtual environment:
+
+   ```bash
+   ls .venv/bin/  # Verify your CLI is available
+   ```
+   
 ## Integrating with Goose
 
 In Goose:
