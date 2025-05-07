@@ -1,0 +1,46 @@
+# Python-related
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.env
+*.venv
+*.egg
+*.egg-info/
+dist/
+build/
+*.whl
+
+# Streamlit-related
+.streamlit/
+*.stcache
+*.stlog
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# macOS-related
+.DS_Store
+
+# Logs and temporary files
+*.log
+*.tmp
+*.bak
+*.swp
+*.swo
+
+# Virtual environment
+.venv/
+
+# Data and configuration files
+src/mcp_data_visualization/data/
+src/mcp_data_visualization/resources/
+
+# IDE-specific
+.vscode/
+.idea/
+*.iml
+
+# Artifacts
+*.tar.gz
+*.zip
