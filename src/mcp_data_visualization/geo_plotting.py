@@ -113,11 +113,13 @@ def create_folium_GeoJson_for_polygons(df, location_col, value_col=None, popup_f
     elif df['is_us_state_code'].mean() >= 0.5:
         state_shapes = gpd.read_file(US_STATE_SHAPEFILE)
         state_shapes = state_shapes.rename(columns={'STUSPS': location_col})
+        df[location_col] = df[location_col].str.upper()
         gdf = state_shapes.merge(df, on=location_col, how='inner')
     elif df['is_us_state_name_lower'].mean() >= 0.5:  
         state_shapes = gpd.read_file(US_STATE_SHAPEFILE)
         state_shapes = state_shapes.rename(columns={'NAME': location_col})
         state_shapes[location_col] = state_shapes[location_col].str.lower()
+        df[location_col] = df[location_col].str.lower()
         gdf = state_shapes.merge(df, on=location_col, how='inner')
     else:
         raise ValueError("The location column provided does not match either US states or zip codes.")
