@@ -7,7 +7,7 @@ from datetime import datetime
 from mcp_data_visualization.geo_plotting import create_geo_viz
 from streamlit_autorefresh import st_autorefresh
 from mcp_data_visualization.plotly_plotting import create_plotly_plot
-from mcp_data_visualization.geo_plotting import download_and_extract_zip, ZIP_CODE_SHAPE_DIR, ZIP_CODE_RESOURCE_URL
+from mcp_data_visualization.geo_plotting import download_and_extract_zip, ZIP_CODE_SHAPE_DIR, ZIP_CODE_RESOURCE_URL, US_STATE_SHAPE_DIR, US_STATE_RESOURCE_URL
 from mcp_data_visualization.server import VIZ_CONFIGS_FILE
 
 # Set page config
@@ -32,6 +32,10 @@ if not ZIP_CODE_SHAPE_DIR.exists():
     ZIP_CODE_SHAPE_DIR.mkdir(parents=True, exist_ok=True)
     download_and_extract_zip(ZIP_CODE_RESOURCE_URL, ZIP_CODE_SHAPE_DIR)
 
+if not US_STATE_SHAPE_DIR.exists():
+    print(f"{US_STATE_SHAPE_DIR} does not exist. Downloading and extracting resources...")
+    US_STATE_SHAPE_DIR.mkdir(parents=True, exist_ok=True)
+    download_and_extract_zip(US_STATE_RESOURCE_URL, US_STATE_SHAPE_DIR)
 
 #
 # 1) tell Streamlit to rerun this script every 5 000 ms

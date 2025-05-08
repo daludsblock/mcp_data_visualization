@@ -442,9 +442,11 @@ dependencies = [
     { name = "mcp", extra = ["cli"] },
     { name = "pandas" },
     { name = "plotly" },
+    { name = "pycountry" },
     { name = "streamlit" },
     { name = "streamlit-autorefresh" },
     { name = "streamlit-folium" },
+    { name = "zipcodes" },
 ]
 
 [package.metadata]
@@ -453,9 +455,11 @@ requires-dist = [
     { name = "mcp", extras = ["cli"], specifier = ">=1.3.0" },
     { name = "pandas", specifier = ">=1.5.0" },
     { name = "plotly", specifier = ">=5.13.0" },
+    { name = "pycountry", specifier = ">=24.6.1" },
     { name = "streamlit", specifier = ">=1.24.0" },
     { name = "streamlit-autorefresh", specifier = ">=1.0.1" },
     { name = "streamlit-folium", specifier = ">=0.25.0" },
+    { name = "zipcodes", specifier = ">=1.3.0" },
 ]
 
 [[package]]
@@ -750,6 +754,15 @@ wheels = [
     { url = "https://artifactory.global.square/artifactory/api/pypi/block-pypi/packages/packages/eb/cb/65fa110b483339add6a9bc7b6373614166b14e20375d4daa73483755f830/pyarrow-20.0.0-cp313-cp313t-musllinux_1_2_aarch64.whl", hash = "sha256:f3b117b922af5e4c6b9a9115825726cac7d8b1421c37c2b5e24fbacc8930612c" },
     { url = "https://artifactory.global.square/artifactory/api/pypi/block-pypi/packages/packages/98/7b/f30b1954589243207d7a0fbc9997401044bf9a033eec78f6cb50da3f304a/pyarrow-20.0.0-cp313-cp313t-musllinux_1_2_x86_64.whl", hash = "sha256:e724a3fd23ae5b9c010e7be857f4405ed5e679db5c93e66204db1a69f733936a" },
     { url = "https://artifactory.global.square/artifactory/api/pypi/block-pypi/packages/packages/37/40/ad395740cd641869a13bcf60851296c89624662575621968dcfafabaa7f6/pyarrow-20.0.0-cp313-cp313t-win_amd64.whl", hash = "sha256:82f1ee5133bd8f49d31be1299dc07f585136679666b502540db854968576faf9" },
+]
+
+[[package]]
+name = "pycountry"
+version = "24.6.1"
+source = { registry = "https://artifactory.global.square/artifactory/api/pypi/block-pypi/simple" }
+sdist = { url = "https://artifactory.global.square/artifactory/api/pypi/block-pypi/packages/packages/76/57/c389fa68c50590881a75b7883eeb3dc15e9e73a0fdc001cdd45c13290c92/pycountry-24.6.1.tar.gz", hash = "sha256:b61b3faccea67f87d10c1f2b0fc0be714409e8fcdcc1315613174f6466c10221" }
+wheels = [
+    { url = "https://artifactory.global.square/artifactory/api/pypi/block-pypi/packages/packages/b1/ec/1fb891d8a2660716aadb2143235481d15ed1cbfe3ad669194690b0604492/pycountry-24.6.1-py3-none-any.whl", hash = "sha256:f1a4fb391cd7214f8eefd39556d740adcc233c778a27f8942c8dca351d6ce06f" },
 ]
 
 [[package]]
@@ -1445,4 +1458,13 @@ source = { registry = "https://artifactory.global.square/artifactory/api/pypi/bl
 sdist = { url = "https://artifactory.global.square/artifactory/api/pypi/block-pypi/packages/packages/00/af/c0f7f97bb320d14c089476f487b81f733238cc5603e0914f2e409f49d589/xyzservices-2025.4.0.tar.gz", hash = "sha256:6fe764713648fac53450fbc61a3c366cb6ae5335a1b2ae0c3796b495de3709d8" }
 wheels = [
     { url = "https://artifactory.global.square/artifactory/api/pypi/block-pypi/packages/packages/d6/7d/b77455d7c7c51255b2992b429107fab811b2e36ceaf76da1e55a045dc568/xyzservices-2025.4.0-py3-none-any.whl", hash = "sha256:8d4db9a59213ccb4ce1cf70210584f30b10795bff47627cdfb862b39ff6e10c9" },
+]
+
+[[package]]
+name = "zipcodes"
+version = "1.3.0"
+source = { registry = "https://artifactory.global.square/artifactory/api/pypi/block-pypi/simple" }
+sdist = { url = "https://artifactory.global.square/artifactory/api/pypi/block-pypi/packages/packages/d4/52/925e88bce7af455d2a444c5df379427f6f3e3979345dac89542e1cce283e/zipcodes-1.3.0.tar.gz", hash = "sha256:6a8d663f8477b54806b0af01bd90bfa2ba88e8e79be824a44e37697c69d064ef" }
+wheels = [
+    { url = "https://artifactory.global.square/artifactory/api/pypi/block-pypi/packages/packages/e0/f5/c5cfbe4a833ad967c130a8946eb093ec2f163d41d0c90b5df99aa8f61748/zipcodes-1.3.0-py2.py3-none-any.whl", hash = "sha256:0da407f1c7e7c0bb93fc91da00c4bb95dc88b545c2ff04febdff5168e9ab8b2f" },
 ]

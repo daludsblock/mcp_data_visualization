@@ -5,10 +5,26 @@ from pathlib import Path
 import tempfile
 import requests
 import zipfile
+import zipcodes
+import pycountry
+us_states = {s.code.split('-')[-1] for s in
+             pycountry.subdivisions.get(country_code='US')}
 
-ZIP_CODE_SHAPE_DIR = Path(tempfile.gettempdir()) / 'resources/geo/tl_2024_us_zcta520'
+
+GEO_SHAPE_DIR = Path(tempfile.gettempdir()) / 'resources/geo'
+
+ZIP_CODE_SHAPE_DIR = GEO_SHAPE_DIR / 'tl_2024_us_zcta520'
 ZIP_CODE_SHAPEFILE = ZIP_CODE_SHAPE_DIR / 'tl_2024_us_zcta520.shp'
 ZIP_CODE_RESOURCE_URL = "https://www2.census.gov/geo/tiger/TIGER2024/ZCTA520/tl_2024_us_zcta520.zip"
+
+US_STATE_SHAPE_DIR = GEO_SHAPE_DIR / 'us_states'
+US_STATE_RESOURCE_URL = "https://www2.census.gov/geo/tiger/GENZ2024/shp/cb_2024_us_state_20m.zip"
+US_STATE_SHAPEFILE = US_STATE_SHAPE_DIR / 'cb_2024_us_state_20m.shp'
+
+US_STATE_CODES = {s.code.split('-')[-1] for s in
+             pycountry.subdivisions.get(country_code='US')}
+US_STATE_NAMES_LOWER = {s.name.lower() for s in
+             pycountry.subdivisions.get(country_code='US')}
 
 def download_and_extract_zip(url, extract_to):
     """Download and extract a ZIP file."""
@@ -73,15 +89,39 @@ def create_folium_GeoJson_for_polygons(df, location_col, value_col=None, popup_f
         folium GeoJson object for polygons
         colormap
     """
-        
-    # Read shapefile and merge with data
-    zip_shapes = gpd.read_file(ZIP_CODE_SHAPEFILE)
-    zip_shapes = zip_shapes.rename(columns={'ZCTA5CE20': location_col})
-    zip_shapes = zip_shapes.astype({location_col: str})
-    df = df.astype({location_col: str})
-    gdf = zip_shapes.merge(df, on=location_col, how='inner')
     
+    # Read shapefile and merge with data
+    
+    def is_valid_zipcode(value):
+        """Check if a value is a valid ZIP code, defaulting to False on error."""
+        try:
+            return zipcodes.is_valid(value) if value else False
+        except ValueError:
+            return False
+    
+    df = df.astype({location_col: str})
+    df['is_zip'] = df[location_col].apply(is_valid_zipcode)
+    df['is_us_state_code'] = df[location_col].str.upper().isin(US_STATE_CODES)
+    df['is_us_state_name_lower'] = df[location_col].str.lower().isin(US_STATE_NAMES_LOWER)
 
+    gdf = None
+    if df['is_zip'].mean() >= 0.5:
+        zip_shapes = gpd.read_file(ZIP_CODE_SHAPEFILE)
+        zip_shapes = zip_shapes.rename(columns={'ZCTA5CE20': location_col})
+        zip_shapes = zip_shapes.astype({location_col: str}) 
+        gdf = zip_shapes.merge(df, on=location_col, how='inner')
+    elif df['is_us_state_code'].mean() >= 0.5:
+        state_shapes = gpd.read_file(US_STATE_SHAPEFILE)
+        state_shapes = state_shapes.rename(columns={'STUSPS': location_col})
+        gdf = state_shapes.merge(df, on=location_col, how='inner')
+    elif df['is_us_state_name_lower'].mean() >= 0.5:  
+        state_shapes = gpd.read_file(US_STATE_SHAPEFILE)
+        state_shapes = state_shapes.rename(columns={'NAME': location_col})
+        state_shapes[location_col] = state_shapes[location_col].str.lower()
+        gdf = state_shapes.merge(df, on=location_col, how='inner')
+    else:
+        raise ValueError("The location column provided does not match either US states or zip codes.")
+    
     poly_colormap = None
     if value_col:
         # Create color map for polygons
