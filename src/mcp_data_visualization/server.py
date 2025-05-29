@@ -4,11 +4,29 @@ import sys
 import subprocess
 import threading
 import time
+import atexit
+import shutil
 from typing import Dict, Any, Optional, List
 from pathlib import Path
 import json
 import tempfile
 
+MCP_TEMP_DIR = Path(tempfile.gettempdir()) / "mcp_data_visualization"
+
+# Define cleanup function
+def cleanup_temp_files():
+    """
+    Delete all files in the temporary directory when the app terminates.
+    """
+    if MCP_TEMP_DIR.exists():
+        try:
+            shutil.rmtree(MCP_TEMP_DIR)
+            print(f"Cleaned up temporary files in {MCP_TEMP_DIR}")
+        except Exception as e:
+            print(f"Error cleaning up temporary files: {e}")
+
+# Register the cleanup function to run on exit
+atexit.register(cleanup_temp_files)
 
 # Update the instructions for your MCP server
 instructions = """

@@ -4,6 +4,26 @@ import pandas as pd
 import numpy as np
 from typing import Dict, Any, Optional, List
 import json
+import plotly.io as pio
+from pathlib import Path
+import tempfile
+
+FIGURE_DIR = Path(tempfile.gettempdir()) / 'mcp_data_visualization/figures'
+
+def save_figure_json(fig):
+    if not FIGURE_DIR.exists():
+        FIGURE_DIR.mkdir(parents=True, exist_ok=True)
+
+    # NamedTemporaryFile with delete=False so it sticks around
+    tmp = tempfile.NamedTemporaryFile(
+        suffix=".json",
+        prefix="fig_",
+        dir=FIGURE_DIR,
+        delete=False
+    )
+    pio.write_json(fig, tmp.name)
+    # tmp.name is something like 'figures/fig_abcd1234efgh.json'
+    return tmp.name
 
 def create_plotly_plot(
     data: pd.DataFrame,
@@ -289,8 +309,16 @@ def create_plotly_plot(
         
 
         
+        # Save figure to JSON file
+        fig_file_path = save_figure_json(fig)
         # Convert to JSON for transmission
-        return fig
+        return {
+            'type': 'plot',
+            'plot_data': {
+                'plot_lib': 'plotly',
+                'plot_json_file': fig_file_path
+            }
+        }
         
     except Exception as e:
         import traceback

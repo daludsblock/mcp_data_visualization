@@ -2,7 +2,8 @@ import streamlit as st
 import pandas as pd
 import json
 from pathlib import Path
-from streamlit_folium import folium_static
+from geo_plotting import display_folium_map
+import plotly.io as pio
 from datetime import datetime
 from mcp_data_visualization.geo_plotting import create_geo_viz
 from streamlit_autorefresh import st_autorefresh
@@ -89,12 +90,10 @@ def add_message(content_type, content, title=None):
 
 def make_plot(plot_configs):
     """Create a plot based on the provided configuration."""
-    viz_type = None
     # Create the plot
     if plot_configs.get("plot_library") == "plotly":
         df = load_data(plot_configs.get("data_source"))
-        fig = create_plotly_plot(df, **plot_configs['configs'])
-        viz_type = "chart"
+        plot_info = create_plotly_plot(df, **plot_configs['configs'])
     elif plot_configs.get("plot_library") == "folium":
         # Assuming folium is used for geographic plots
         polygon_df = None
@@ -103,13 +102,12 @@ def make_plot(plot_configs):
             polygon_df = load_data(plot_configs.get("polygon_data_source"))
         if plot_configs.get("point_data_source"):
             point_df = load_data(plot_configs.get("point_data_source"))
-        fig = create_geo_viz(polygon_df, point_df, plot_configs['configs'])
-        viz_type = "map"
+        plot_info = create_geo_viz(polygon_df, point_df, plot_configs['configs'])
     else:
         st.error(f"Unsupported plot type: {plot_configs.get('type')}")
-        return None, None
+        return None
     
-    return fig, viz_type
+    return plot_info
 
 def main():   
     st.title("Goose Data Visualization Hub")
@@ -143,11 +141,17 @@ def main():
     if (st.session_state.last_plot_config_modify_time is None or
         st.session_state.last_plot_config_modify_time != VIZ_CONFIGS_FILE.stat().st_mtime):
         
-        fig = None
+        fig_file = None
         viz_type = None
         for plot_configs in json.loads(VIZ_CONFIGS_FILE.read_text()):
-            fig, viz_type = make_plot(plot_configs)
-            add_message(viz_type, fig)
+            plot_info = make_plot(plot_configs)
+            if plot_info is not None:
+                viz_type = plot_info['plot_data']['plot_lib']
+                if viz_type == "plotly":
+                    fig_file = plot_info['plot_data']['plot_json_file']
+                elif viz_type == "folium":
+                    fig_file = plot_info['plot_data']['plot_html_file']
+            add_message(viz_type, fig_file)
         
         # Update last modified times
         st.session_state.last_plot_config_modify_time = VIZ_CONFIGS_FILE.stat().st_mtime
@@ -162,11 +166,16 @@ def main():
                 # Display content based on type
                 content_type = message["type"]
                 content = message["content"]
-                if content_type == "chart":
+                if content_type == "plotly":
                     chart_key = f"chart_{msg_idx}"
-                    st.plotly_chart(content, use_container_width=True, key=chart_key)
-                elif content_type == "map":
-                    folium_static(content)
+                    fig_file_path = content
+                    fig = pio.read_json(fig_file_path)
+                    st.plotly_chart(fig, use_container_width=True, key = chart_key)
+                elif content_type == "folium":
+                    folium_map_html_file = content
+                    with open(folium_map_html_file, 'r') as f:
+                        folium_map = f.read()
+                    display_folium_map(folium_map)
                 st.caption(f"Generated at: {message['timestamp'].strftime('%Y-%m-%d %H:%M:%S')}")
 
 
