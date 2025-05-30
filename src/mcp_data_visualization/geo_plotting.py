@@ -111,7 +111,7 @@ def create_folium_GeoJson_for_polygons(df, location_col, value_col=None, popup_f
     def is_valid_zipcode(value):
         """Check if a value is a valid ZIP code, defaulting to False on error."""
         try:
-            return zipcodes.is_valid(value) if value else False
+            return zipcodes.is_real(value) if value else False
         except ValueError:
             return False
     
@@ -267,5 +267,3 @@ def display_folium_map(folium_map_html):
 
     # Render the combined HTML in Streamlit
     components.html(combined_html, height=0)  # Height is dynamically set by JavaScript
-
-
