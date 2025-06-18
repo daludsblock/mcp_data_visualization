@@ -13,7 +13,8 @@ dependencies = [
     "streamlit_folium>=0.25.0",
     "streamlit-autorefresh>=1.0.1",
     "pycountry>=24.6.1",
-    "zipcodes>=1.3.0"
+    "zipcodes>=1.3.0",
+    "snowflake-connector-python>=3.0.0"
 ]
 
 [project.scripts]

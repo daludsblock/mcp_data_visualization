@@ -110,73 +110,63 @@ def make_plot(plot_configs):
     return plot_info
 
 def main():   
-    st.title("Goose Data Visualization Hub")
-    
-    # Controls in sidebar
-    st.sidebar.title("Controls")
-    
-    # Clear button
-    if st.sidebar.button("Clear History"):
-        clear_messages()
-        return
+    try:
+        st.title("Goose Data Visualization Hub")
+        
+        # Controls in sidebar
+        st.sidebar.title("Controls")
+        
+        # Clear button
+        if st.sidebar.button("Clear History"):
+            clear_messages()
+            return
 
-    
-    # Calculate current data hash
-    # current_hash = get_data_hash(df)
-    
-    # Check if we have new data to visualize and auto-generate is enabled
-    # if current_hash != st.session_state.last_data_hash and st.session_state.auto_generate:
-    #     # Add visualization
-    #     content = create_plot(df, viz_config)
-    #     add_message("visualization", content, viz_config.get('title', 'Data Visualization'))
+        # Check if we have either new data or new plot config
+        if (st.session_state.last_plot_config_modify_time is None or
+            st.session_state.last_plot_config_modify_time != VIZ_CONFIGS_FILE.stat().st_mtime):
+            
+            fig_file = None
+            viz_type = None
+            for plot_configs in json.loads(VIZ_CONFIGS_FILE.read_text()):
+                # st.write(plot_configs)
+                plot_info = make_plot(plot_configs)
+                # st.write(plot_info)
+                if plot_info is not None:
+                    viz_type = plot_info['plot_data']['plot_lib']
+                    if viz_type == "plotly":
+                        fig_file = plot_info['plot_data']['plot_json_file']
+                    elif viz_type == "folium":
+                        fig_file = plot_info['plot_data']['plot_html_file']
+                add_message(viz_type, fig_file)
+            
+            # Update last modified times
+            st.session_state.last_plot_config_modify_time = VIZ_CONFIGS_FILE.stat().st_mtime
         
-    #     # Add geographic visualization if available
-    #     if geo_config is not None:
-    #         content = create_geo_viz(df_geo_polygons, df_geo_points, geo_config)
-    #         add_message("geographic", content, "Geographic Distribution of Checkout Rates")
-        
-    #     st.session_state.last_data_hash = current_hash
-
-    # check if we have either new data or new plot config
-    if (st.session_state.last_plot_config_modify_time is None or
-        st.session_state.last_plot_config_modify_time != VIZ_CONFIGS_FILE.stat().st_mtime):
-        
-        fig_file = None
-        viz_type = None
-        for plot_configs in json.loads(VIZ_CONFIGS_FILE.read_text()):
-            plot_info = make_plot(plot_configs)
-            if plot_info is not None:
-                viz_type = plot_info['plot_data']['plot_lib']
-                if viz_type == "plotly":
-                    fig_file = plot_info['plot_data']['plot_json_file']
-                elif viz_type == "folium":
-                    fig_file = plot_info['plot_data']['plot_html_file']
-            add_message(viz_type, fig_file)
-        
-        # Update last modified times
-        st.session_state.last_plot_config_modify_time = VIZ_CONFIGS_FILE.stat().st_mtime
-    
-    # Display messages
-    for msg_idx, message in enumerate(st.session_state.messages):
-        if message["role"] == "assistant":
-            with st.chat_message("assistant"):
-                if message["title"]:
-                    st.subheader(message["title"])
-                
-                # Display content based on type
-                content_type = message["type"]
-                content = message["content"]
-                if content_type == "plotly":
-                    chart_key = f"chart_{msg_idx}"
-                    fig_file_path = content
-                    fig = pio.read_json(fig_file_path)
-                    st.plotly_chart(fig, use_container_width=True, key = chart_key)
-                elif content_type == "folium":
-                    folium_map_html_file = content
-                    with open(folium_map_html_file, 'r') as f:
-                        folium_map = f.read()
-                    display_folium_map(folium_map)
-                st.caption(f"Generated at: {message['timestamp'].strftime('%Y-%m-%d %H:%M:%S')}")
+        # Display messages
+        for msg_idx, message in enumerate(st.session_state.messages):
+            if message["role"] == "assistant":
+                with st.chat_message("assistant"):
+                    if message["title"]:
+                        st.subheader(message["title"])
+                    
+                    # Display content based on type
+                    content_type = message["type"]
+                    content = message["content"]
+                    if content_type == "plotly":
+                        chart_key = f"chart_{msg_idx}"
+                        fig_file_path = content
+                        fig = pio.read_json(fig_file_path)
+                        st.plotly_chart(fig, use_container_width=True, key=chart_key)
+                    elif content_type == "folium":
+                        folium_map_html_file = content
+                        with open(folium_map_html_file, 'r') as f:
+                            folium_map = f.read()
+                        display_folium_map(folium_map)
+                    st.caption(f"Generated at: {message['timestamp'].strftime('%Y-%m-%d %H:%M:%S')}")
+    except Exception as e:
+        st.error(f"An unexpected error occurred: {str(e)}")
+        import traceback
+        traceback.print_exc()
 
 
     

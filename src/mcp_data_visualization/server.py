@@ -10,23 +10,13 @@ from typing import Dict, Any, Optional, List
 from pathlib import Path
 import json
 import tempfile
+import snowflake.connector as sfconnector
+import os
 
+snowflake_conn=None
 MCP_TEMP_DIR = Path(tempfile.gettempdir()) / "mcp_data_visualization"
-
-# Define cleanup function
-def cleanup_temp_files():
-    """
-    Delete all files in the temporary directory when the app terminates.
-    """
-    if MCP_TEMP_DIR.exists():
-        try:
-            shutil.rmtree(MCP_TEMP_DIR)
-            print(f"Cleaned up temporary files in {MCP_TEMP_DIR}")
-        except Exception as e:
-            print(f"Error cleaning up temporary files: {e}")
-
-# Register the cleanup function to run on exit
-atexit.register(cleanup_temp_files)
+VIZ_CONFIG_DIR=Path(tempfile.gettempdir()) / "mcp_data_visualization/viz_config"
+VIZ_CONFIGS_FILE = Path(tempfile.gettempdir()) / "mcp_data_visualization/viz_config/plot_configs.json"
 
 # Update the instructions for your MCP server
 instructions = """
@@ -36,9 +26,49 @@ This is the instruction / prompt for your MCP server. Include instructions on wh
 # Create an MCP server
 mcp = FastMCP("mcp_data_visualization", instructions=instructions)
 
-VIZ_CONFIG_DIR=Path(tempfile.gettempdir()) / "mcp_data_visualization/viz_config"
-VIZ_CONFIGS_FILE = Path(tempfile.gettempdir()) / "mcp_data_visualization/viz_config/plot_configs.json"
+if not MCP_TEMP_DIR.exists():
+    MCP_TEMP_DIR.mkdir(parents=True, exist_ok=True)
 
+# Lazy initialization of Snowflake connection
+def get_snowflake_connection():
+    global snowflake_conn
+    if snowflake_conn is None:
+        try:
+            snowflake_conn = sfconnector.connect(
+                user=os.getenv("SNOWFLAKE_USER"),
+                account=os.getenv("SNOWFLAKE_ACCOUNT"),
+                authenticator="externalbrowser",
+            )
+            print("Snowflake connection initialized successfully.")
+        except Exception as e:
+            print(f"Error initializing Snowflake connection: {e}")
+            raise
+    return snowflake_conn
+
+# Define cleanup function
+def cleanup_resources():
+    """
+    Clean up resources when the server shuts down.
+    """
+    # Close Snowflake connection
+    global snowflake_conn
+    try:
+        if snowflake_conn:
+            snowflake_conn.close()
+            print("Snowflake connection closed gracefully.")
+    except Exception as e:
+        print(f"Error closing Snowflake connection: {e}")
+
+    # Delete temporary files
+    if MCP_TEMP_DIR.exists():
+        try:
+            shutil.rmtree(MCP_TEMP_DIR)
+            print(f"Cleaned up temporary files in {MCP_TEMP_DIR}")
+        except Exception as e:
+            print(f"Error cleaning up temporary files: {e}")
+
+# Register the cleanup function to run on exit
+atexit.register(cleanup_resources)
 
 def start_streamlit():
     """
@@ -74,6 +104,29 @@ def open_plot_ui()->Dict[str, Any]:
     t.start()
     time.sleep(2)
     return {"status": "success", "message": "Plot UI launched successfully"}
+
+# @mcp.tool()
+# def stop_plot_ui() -> Dict[str, Any]:
+#     """
+#     Stops the Streamlit app for data visualization.
+#     """
+#     # This is a placeholder function. In practice, you would need to implement a way to stop the Streamlit server.
+#     # One way could be to keep track of the process ID and terminate it.
+#     # For now, we will just return a success message.
+#     return {"status": "success", "message": "Plot UI stopped successfully"}
+
+@mcp.tool()
+def snowflake_query_executor(query: str, output_file_name) -> Dict[str, Any]:
+    """
+    Executes a query against a Snowflake database.
+    """
+    conn = get_snowflake_connection()  # Ensure the connection is initialized
+    try:
+        conn.cursor().execute(query).fetch_pandas_all().to_csv(MCP_TEMP_DIR/f"{output_file_name}", index=False)
+    except Exception as e:
+        return {"status": "error", "message": f"Failed to execute query: {str(e)}"}
+
+    return {"status": "success", "message": f"Executed query: {query}. Output saved to {MCP_TEMP_DIR/f'{output_file_name}'}"}
 
 # Tool for chart plotting with Plotly
 @mcp.tool()

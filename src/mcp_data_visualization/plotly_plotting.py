@@ -198,7 +198,7 @@ def create_plotly_plot(
                 fig = px.violin(data, x=x, y=y, box=True, **common_params)
             
             elif plot_type == "histogram":
-                hist_params = {k: v for k, v in common_params.items() if k != 'hover_data'}
+                hist_params = {k: v for k, v in common_params.items() if k != 'hover_data' and k != 'custom_data'}
                 if y:
                     # If y is provided, create a histogram with both x and y
                     fig = px.histogram(data, x=x, y=y, **hist_params)
