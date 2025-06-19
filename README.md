@@ -42,6 +42,6 @@ In Goose:
 2. Set **Type** to **StandardIO**.
 3. Enter the absolute path to this project's CLI in your environment, for example:
    ```bash
-   uv run /path/to/mcp_data_visualization/.venv/bin/mcp_data_visualization
+   env SNOWFLAKE_ACCOUNT=your_account_name SNOWFLAKE_USER=your_user_name uv run /path/to/mcp_data_visualization/.venv/bin/mcp_data_visualization
    ```
 4. Enable the extension and confirm that Goose identifies your tools.
